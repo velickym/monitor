@@ -1,8 +1,54 @@
 
-
 // set the dimensions and margins of the graph
 var width = 1200
 var height = 600
+class Motion {
+  static pods = []
+  constructor(svg, id) {
+    this.id = id
+    this.clientList = []
+    this.svg = svg;
+    Motion.pods = Array.from(this.svg.selectAll('.pod'))
+  }
+  _getRandomCoord() {
+    return { x: Math.random() * width / 4, y: Math.random() * height }
+  }
+
+  _drawClients() {
+    this.svg.selectAll(".client")
+      .data(this.clientList)
+      .join('circle')
+      .attr('id', d => {
+        return d.id
+      })
+      .attr("class", "client")
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('r', 3)
+      .attr('fill', 'purple')
+  }
+
+  spawn(id) {
+    this.clientList.push({ id: id, ...this._getRandomCoord() })
+    this._drawClients()
+  }
+
+  static move(client_id, pod_id) {
+    if (!pod_id) return
+    const podObj = {}
+    Motion.pods.map(d => d.__data__).forEach(d => {
+      podObj[d.id] = { ...d }
+    })
+    const { x, y } = podObj[pod_id]
+
+
+
+    d3.select(`#${client_id}`)
+      .transition()
+      .duration(2000)
+      .attr('cx', x).attr('cy', y)
+  }
+}
 
 // append the svg object to the body of the page
 var svg = d3.select('body')
@@ -10,8 +56,9 @@ var svg = d3.select('body')
   .attr("width", width)
   .attr("height", height)
 
+// set cluster titles
 var titles = {}
-d3.json('data.json').then(_data => {
+d3.json('data.json').then((_data) => {
   let data = []
   _data.forEach(d => {
     _group = null
@@ -33,12 +80,9 @@ d3.json('data.json').then(_data => {
     }
     titles[d.name] = _group
     d.pods.forEach(k => {
-      console.log(k)
       data.push({ id: k, category: d.name.toLowerCase(), group: _group })
     })
   })
-
-  console.log(titles)
 
 
   // A scale that gives a X target position for each group
@@ -56,29 +100,32 @@ d3.json('data.json').then(_data => {
     .domain(["order", "payment", "shipping", "receipt"])
     .range(["#F8766D", "#00BA38", "#619CFF"])
 
-  function dragstarted(event) {
-    if (!event.active) simulation.alphaTarget(1).restart();
-    event.subject.fx = event.subject.x;
-    event.subject.fy = event.subject.y;
-  }
+  // function dragstarted(event) {
+  //   if (!event.active) simulation.alphaTarget(1).restart();
+  //   event.subject.fx = event.subject.x;
+  //   event.subject.fy = event.subject.y;
+  // }
 
-  function dragged(event) {
-    event.subject.fx = event.x;
-    event.subject.fy = event.y;
-  }
+  // function dragged(event) {
+  //   event.subject.fx = event.x;
+  //   event.subject.fy = event.y;
+  // }
 
-  function dragended(event) {
-    if (!event.active) simulation.alphaTarget(0);
-    event.subject.fx = null;
-    event.subject.fy = null;
-  }
+  // function dragended(event) {
+  //   if (!event.active) simulation.alphaTarget(0);
+  //   event.subject.fx = null;
+  //   event.subject.fy = null;
+  // }
 
+  // manually setting up title 
   const textData = [{ name: "Orders", group: [1, 2] }, { name: "Payments", group: [2, 1] }, { name: "Shipping", group: [2, 3] }, { name: "Receipts", group: [3, 2] }]
   svg.selectAll('text').data(textData).join('text').text(d => d.name).attr('class', d => d.name.toLowerCase()).style('text-anchor', 'middle')
 
-  let texts = svg.append('g').selectAll('.text').data(textData).join("circle").attr('class', 'text')
-  // .attr("x", (d) => x(titles[d][0]))
-  // .attr("y", (d) => y(titles[d][1]))
+  let texts = svg.append('g')
+    .selectAll('.text')
+    .data(textData)
+    .join("circle")
+    .attr('class', 'text')
 
   // Initialize the circle: all located at the center of the svg area
   var node = svg.append("g")
@@ -87,30 +134,23 @@ d3.json('data.json').then(_data => {
     .enter()
     .append("circle")
     .attr("r", 10)
-    .attr("class", d => `circle ${d.category}`)
-    // .attr("cx", width / 2)
-    // .attr("cy", height / 2)
-    // .style("fill", "#69b3a2")
-    // .style("fill-opacity", 0.3)
-    // .attr("stroke", "#69a2b2")
-    .call(d3.drag()
-      .on("start", dragstarted)
-      .on("drag", dragged)
-      .on("end", dragended)
-    ).on('mouseover', function (event, d) {
-      console.log(d.id)
+    .attr("class", d => `circle pod ${d.category}`)
+    .on('mouseover', function (event, d) {
+      console.log(d)
     })
 
-  // // Features of the forces applied to the nodes:
+  // Features of the forces applied to the pods nodes:
   var simulation = d3.forceSimulation()
     .force("x", d3.forceX().strength(0.1).x(function (d, i) {
       return x(d.group[0])
     }))
+    .alpha(0.5)
     .force("y", d3.forceY().strength(0.1).y(function (d, i) { return y(d.group[1]) }))
     .force("center", d3.forceCenter().x(width / 2).y(height / 2)) // Attraction to the center of the svg area
     .force("charge", d3.forceManyBody().strength(1)) // Nodes are attracted one each other of value is > 0
     .force("collide", d3.forceCollide().strength(1).radius(15).iterations(1)) // Force that avoids circle overlapping
 
+  // Features of the forces applied to the text nodes:
   var txtSimulation = d3.forceSimulation()
     .force("x", d3.forceX().strength(0.1).x(function (d, i) {
       return x(d.group[0])
@@ -120,48 +160,53 @@ d3.json('data.json').then(_data => {
     .force("charge", d3.forceManyBody().strength(1)) // Nodes are attracted one each other of value is > 0
     .force("collide", d3.forceCollide().strength(1).radius(15).iterations(1)) // Force that avoids circle overlapping
 
-  // // Apply these forces to the nodes and update their positions.
-  // // Once the force algorithm is happy with positions ('alpha' value is low enough), simulations will stop.
 
-  // var childnode = svg.append("g")
-  //   .selectAll(".child")
-  //   .data(data[0].children)
-  //   .join('circle')
-  //   .attr('class', 'child')
-  //   .attr("r", 10)
-  //   .attr("cx", width / 2)
-  //   .attr("cy", height / 2)
-  //   .style("fill", "#69b3a2")
-  //   .style("fill-opacity", 0.3)
-  //   .attr("stroke", "#69a2b2")
-  //   .style("stroke-width", 4)
+  // Start the force simulation
+  const startSim = async () => {
+    simulation
+      .nodes(data)
+      .on("tick", function (d) {
+        node
+          .attr("cx", function (d) {
+            return d.x;
+          })
+          .attr("cy", function (d) {
+            return d.y;
+          });
+      });
 
-  // data[0].childNode = childnode
+    txtSimulation
+      .nodes(textData)
+      .on("tick", function (d) {
+        texts
+          .attr("cx", function (d) {
+            d3.selectAll(`.${d.name.toLowerCase()}`).attr('x', d.x).attr('y', d.y - 60)
+            return d.x;
+          })
 
-  simulation
-    .nodes(data)
-    .on("tick", function (d) {
-      node
-        .attr("cx", function (d) {
-          return d.x;
-        })
-        .attr("cy", function (d) {
-          return d.y;
-        });
-    });
+      });
+    return Array.from(svg.selectAll('.pod'))
+  }
+  return startSim();
 
-
-
-
-  txtSimulation
-    .nodes(textData)
-    .on("tick", function (d) {
-      texts
-        .attr("cx", function (d) {
-          d3.selectAll(`.${d.name.toLowerCase()}`).attr('x', d.x).attr('y', d.y - 60)
-          return d.x;
-        })
-
-    });
-
+}).then(() => {
+  // Start spawning the clients
+  const client = new Motion(svg, "test");
+  client.spawn('client1')
+  setTimeout(function () {
+    Motion.move("client1", "payment-service-hj66k88-xyz123")
+  }, 1000)
+  setTimeout(function () {
+    Motion.move("client1", "receipts-service-hj66k88-abc456")
+  }, 3000)
+  setTimeout(function () {
+    Motion.move("client1", "shipping-service-hj66k88-xyz123")
+  }, 5000)
+  let i = 0;
+  // const intr = setInterval(function () {
+  //   client.spawn(Date.now())
+  //   i++
+  //   if (i > 10) clearInterval(intr)
+  // }, 100)
+  // }
 })
