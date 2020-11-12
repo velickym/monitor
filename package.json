@@ -1,0 +1,23 @@
+{
+  "name": "monitor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/velickym/monitor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/velickym/monitor/issues"
+  },
+  "homepage": "https://github.com/velickym/monitor#readme",
+  "dependencies": {
+    "@types/d3": "^6.1.0",
+    "d3": "^6.2.0"
+  }
+}
