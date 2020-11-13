@@ -2,22 +2,31 @@
   "name": "monitor",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
+  "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/velickym/monitor.git"
+    "url": "git+https://github.com/umeshrai508/monitor.git"
   },
+  "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/velickym/monitor/issues"
+    "url": "https://github.com/umeshrai508/monitor/issues"
   },
-  "homepage": "https://github.com/velickym/monitor#readme",
+  "homepage": "https://github.com/umeshrai508/monitor#readme",
+  "dependencies": {},
   "devDependencies": {
     "@types/d3": "^6.1.0",
-    "d3": "^6.2.0"
+    "d3": "^6.2.0",
+    "eslint": "^7.13.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-react": "^7.21.5",
+    "prettier": "^2.1.2"
   }
 }
