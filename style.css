@@ -1,0 +1,7 @@
+body {
+  min-height: 90vh;
+}
+
+svg {
+  border: 1px solid red;
+}
