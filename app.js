@@ -20,30 +20,50 @@ class Motion {
   constructor(svg, id) {
     Motion.counter = 0;
     this.id = id;
-    this.clientList = [];
-    this.svg = svg;
-    Motion.pods = Array.from(this.svg.selectAll(".pod"));
+    Motion.clientList = [];
+    Motion.svg = svg;
+    Motion.pods = Array.from(Motion.svg.selectAll(".pod"));
   }
 
-  drawClients() {
-    this.svg
+  static drawClients() {
+    Motion.svg
       .selectAll(".client")
-      .data(this.clientList)
-      .attr("fill", getRandomColor())
-      .join("circle")
-      .attr("id", (d) => d.id)
-      .attr("class", "client")
-      .attr("cx", (d) => d.x)
-      .attr("cy", (d) => d.y)
-      .attr("r", 3);
+      .data(Motion.clientList)
+      .join(
+        (enter) =>
+          enter
+            .append("circle")
+            .attr("fill", getRandomColor())
+            .attr("id", (d) => d.id)
+            .attr("class", "client")
+            .attr("cx", (d) => d.x)
+            .attr("cy", (d) => d.y)
+            .attr("r", 6),
+        (update) => update.attr("r", "5")
+      );
   }
 
-  spawn(id) {
-    this.clientList.push({ id, ...getRandomCoord() });
-    this.drawClients();
+  static spawn(id, coords) {
+    if (coords) {
+      Motion.clientList.push({ id, ...coords });
+    } else {
+      Motion.clientList.push({ id, ...getRandomCoord() });
+    }
+    Motion.drawClients();
   }
 
-  static move(clientId, podId) {
+  static copyAndMove(clientId, podId) {
+    console.log(clientId);
+
+    const node = d3.select(`#${clientId}`).node();
+    Motion.spawn(`${clientId}_copy`, {
+      x: node.getAttribute("cx"),
+      y: node.getAttribute("cy"),
+    });
+    Motion.move(`${clientId}_copy`, podId);
+  }
+
+  static async move(clientId, podId) {
     if (!podId) return;
     const podObj = {};
     Motion.pods
@@ -53,14 +73,15 @@ class Motion {
       });
     const { x, y } = podObj[podId];
 
-    d3.select(`#${clientId}`)
+    await d3
+      .select(`#${clientId}`)
       .transition()
-      .delay(300)
-      .duration(Motion.counter === 0 ? 3000 : 500)
+      .duration(1000)
       .attr("cx", x)
       .attr("cy", y);
-      
-    console.log(Motion.counter);
+    setTimeout(() => {
+      return 1;
+    }, 1000);
     Motion.counter += 1;
   }
 }
@@ -112,29 +133,6 @@ d3.json("data.json")
       .domain([1, 3])
       .range([0, (height * 2) / 3.4]);
 
-    // A color scale
-    // var color = d3.scaleOrdinal()
-    //   .domain(["order", "payment", "shipping", "receipt"])
-    //   .range(["#F8766D", "#00BA38", "#619CFF"]);
-
-    // function dragstarted(event) {
-    //   if (!event.active) simulation.alphaTarget(1).restart();
-    //   event.subject.fx = event.subject.x;
-    //   event.subject.fy = event.subject.y;
-    // }
-
-    // function dragged(event) {
-    //   event.subject.fx = event.x;
-    //   event.subject.fy = event.y;
-    // }
-
-    // function dragended(event) {
-    //   if (!event.active) simulation.alphaTarget(0);
-    //   event.subject.fx = null;
-    //   event.subject.fy = null;
-    // }
-
-    // manually setting up title
     const textData = [
       { name: "Orders", group: [1, 2] },
       { name: "Payments", group: [2, 1] },
@@ -245,21 +243,46 @@ d3.json("data.json")
   .then(() => {
     // Start spawning the clients
     const motion = new Motion(svg, "test");
+    console.log(motion);
+    const podIds = Array.from(d3.selectAll(".pod")).map((d) => d.__data__.id);
+    const orderPods = podIds.filter((d) => d.startsWith("order"));
+    const paymentPods = podIds.filter((d) => d.startsWith("payment"));
+    const receiptPods = podIds.filter((d) => d.startsWith("receipt"));
+    const shippingPods = podIds.filter((d) => d.startsWith("shipping"));
 
     const sim = () => {
       const clientId = `client_${Date.now()}`;
-      motion.spawn(clientId);
+      Motion.spawn(clientId);
       setTimeout(() => {
-        Motion.move(clientId, "order-service-hj66k88-xyz456");
+        Motion.move(
+          clientId,
+          orderPods[Math.floor(Math.random() * orderPods.length)]
+        );
       }, 0);
       setTimeout(() => {
-        Motion.move(clientId, "payment-service-hj66k88-xyz123");
+        Motion.copyAndMove(
+          clientId,
+          receiptPods[Math.floor(Math.random() * receiptPods.length)]
+        );
+      }, 1000);
+
+      setTimeout(() => {
+        Motion.move(
+          clientId,
+          paymentPods[Math.floor(Math.random() * paymentPods.length)]
+        );
       }, 1000);
       setTimeout(() => {
-        Motion.move(clientId, "receipts-service-hj66k88-abc456");
+        Motion.move(
+          clientId,
+          receiptPods[Math.floor(Math.random() * receiptPods.length)]
+        );
       }, 3000);
       setTimeout(() => {
-        Motion.move(clientId, "shipping-service-hj66k88-xyz123");
+        Motion.move(
+          clientId,
+          shippingPods[Math.floor(Math.random() * shippingPods.length)]
+        );
       }, 5000);
       // const intr = setInterval(function () {
       //   client.spawn(Date.now())
@@ -268,10 +291,26 @@ d3.json("data.json")
       // }, 100)
       // }
     };
-    const intr = setInterval(() => {
+    setTimeout(() => {
       sim();
-      if (Motion.counter > 100) {
-        clearInterval(intr);
-      }
-    }, Math.random(1, 5) * 1000);
+      const intr = setInterval(() => {
+        sim();
+        if (Motion.counter > 100) {
+          clearInterval(intr);
+        }
+      }, Math.random(1, 20) * 1000);
+    }, 4000);
   });
+
+let timeout = 700;
+setInterval(() => {
+  timeout -= 1;
+  if (timeout >= 0) {
+    console.log(timeout);
+    d3.select("body")
+      .selectAll("h2")
+      .data([null])
+      .join("h2")
+      .text(`Simulation start in ${timeout}`);
+  }
+}, 1);
