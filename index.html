@@ -1,59 +1,57 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta char set="utf-8" />
+    <title></title>
 
-<head>
-  <meta char set="utf-8">
-  <title></title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.2.0/d3.min.js"
+      integrity="sha512-C2RveGuPIWqkaLAluvoxyiaN1XYNe5ss11urhZWZYBUA9Ydgj+hfGKPcxCzTwut1/fmjEZR7Ac35f2aycT8Ogw=="
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      .circle {
+        stroke: green;
+        stroke-width: 2px;
+      }
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.2.0/d3.min.js"
-    integrity="sha512-C2RveGuPIWqkaLAluvoxyiaN1XYNe5ss11urhZWZYBUA9Ydgj+hfGKPcxCzTwut1/fmjEZR7Ac35f2aycT8Ogw=="
-    crossorigin="anonymous"></script>
-  <style>
-    .circle {
-      stroke: green;
-      stroke-width: 2px;
-    }
+      text {
+        font-family: sans-serif;
+        font-weight: 600;
+      }
 
-    text {
-      font-family: sans-serif;
-      font-weight: 600;
-    }
+      .orders {
+        fill: steelblue;
+      }
 
-    .orders {
-      fill: steelblue
-    }
+      .payments {
+        fill: magenta;
+      }
 
-    .payments {
-      fill: magenta
-    }
+      .receipts {
+        fill: lightcoral;
+      }
 
-    .receipts {
-      fill: lightcoral;
-    }
+      .shipping {
+        fill: lightseagreen;
+      }
 
-    .shipping {
-      fill: lightseagreen;
-    }
+      svg {
+        border: 1px solid red;
+      }
 
-    svg {
-      border: 1px solid red;
-    }
+      circle {
+        cursor: pointer;
+      }
 
-    circle {
-      cursor: pointer;
-    }
+      circle:hover {
+        transition: stroke-width 0.3s;
+        stroke-width: 4px;
+      }
+    </style>
+  </head>
 
-    circle:hover {
-      transition: stroke-width 0.3s;
-      stroke-width: 4px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <script src="app.js" charset="utf-8">
-  </script>
-</body>
-
+  <body>
+    <script src="app.js" charset="utf-8"></script>
+  </body>
 </html>
