@@ -352,7 +352,7 @@ d3.json("data.json")
           clientId,
           orderPods[Math.floor(Math.random() * orderPods.length)]
         );
-      }, 0);
+      }, Math.random()*500);
       setTimeout(() => {
         Motion.copyAndMove(
           clientId,
@@ -369,7 +369,7 @@ d3.json("data.json")
           clientId,
           paymentPods[Math.floor(Math.random() * paymentPods.length)]
         );
-      }, 800);
+      }, 2000);
       setTimeout(() => {
         Motion.move(
           clientId,
@@ -384,7 +384,7 @@ d3.json("data.json")
         ).then((d) => {
           setTimeout(() => {
             Motion.destroy(d);
-          }, 500);
+          }, 1000);
         });
       }, 4000);
     };
@@ -394,10 +394,10 @@ d3.json("data.json")
       sim();
       const intr = setInterval(() => {
         sim();
-        if (Motion.counter > 100) {
+        if (Motion.counter > 10000) {
           clearInterval(intr);
         }
-      }, 200); // Control the speed of unit spawning
+      }, 2); // Control the speed of unit spawning
     }, 2000);
   });
 
