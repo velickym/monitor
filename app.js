@@ -1,8 +1,17 @@
 // set the dimensions and margins of the graph
 const width = 1200;
 const height = 600;
+let node;
+let svg;
 
 const { d3 } = window;
+const getColour = (category) => {
+  const colour = d3
+    .scaleOrdinal()
+    .domain(["payments", "orders", "shipping", "receipts"])
+    .range(["#4682b4", "#ff00ff", "#f08080", "#20b2aa"]);
+  return colour(category);
+};
 
 function getRandomColor() {
   const letters = "0123456789ABCDEF";
@@ -16,30 +25,34 @@ function getRandomColor() {
 function getRandomCoord() {
   return { x: Math.random() * (width / 4), y: Math.random() * height };
 }
+
 class Motion {
-  constructor(svg, id) {
+  constructor(svgEl, id) {
     Motion.counter = 0;
     this.id = id;
     Motion.clientList = [];
-    Motion.svg = svg;
-    Motion.pods = Array.from(Motion.svg.selectAll(".pod"));
+    Motion.svg = svgEl;
+    Motion.pods = Array.from(Motion.svg.selectAll(".pod").data());
   }
 
   static drawClients() {
     Motion.svg
       .selectAll(".client")
-      .data(Motion.clientList)
+      .data(Motion.clientList, (d) => d.id)
       .join(
         (enter) =>
           enter
             .append("circle")
             .attr("fill", getRandomColor())
             .attr("id", (d) => d.id)
+            .attr("r", 4)
             .attr("class", "client")
-            .attr("cx", (d) => d.x)
-            .attr("cy", (d) => d.y)
-            .attr("r", 6),
-        (update) => update.attr("r", "5")
+            .attr("cx", (d) => {
+              return d.x;
+            })
+            .attr("cy", (d) => d.y),
+        (update) => update,
+        (exit) => exit.remove()
       );
   }
 
@@ -52,46 +65,107 @@ class Motion {
     Motion.drawClients();
   }
 
-  static copyAndMove(clientId, podId) {
-    console.log(clientId);
-
-    const node = d3.select(`#${clientId}`).node();
-    Motion.spawn(`${clientId}_copy`, {
-      x: node.getAttribute("cx"),
-      y: node.getAttribute("cy"),
+  static destroy(clientId) {
+    Motion.clientList = Motion.clientList.filter((d) => {
+      return d.id !== clientId;
     });
-    Motion.move(`${clientId}_copy`, podId);
+    // eslint-disable-next-line no-console
+    console.log(`Destroyed::${clientId}`);
+    this.drawClients();
+  }
+
+  static async copyAndMove(clientId, podId) {
+    const el = d3.select(`#${clientId}`).node();
+    if (!el) return null;
+    Motion.spawn(`${clientId}_copy`, {
+      x: el.getAttribute("cx"),
+      y: el.getAttribute("cy"),
+    });
+    const tmpClientId = await Motion.move(`${clientId}_copy`, podId);
+    return tmpClientId;
   }
 
   static async move(clientId, podId) {
-    if (!podId) return;
+    if (!podId) return null;
     const podObj = {};
-    Motion.pods
-      .map((d) => d.__data__)
-      .forEach((d) => {
-        podObj[d.id] = { ...d };
-      });
+
+    // Add circle in the back
+    const podTitleData = d3.selectAll("text").data();
+    Motion.svg
+      .selectAll(".group-pod-circle")
+      .data(podTitleData)
+      .join("ellipse")
+      .attr("class", "group-pod-circle")
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y)
+      .attr("rx", 120)
+      .attr("ry", 90)
+      .attr("fill", "#333")
+      .attr("stroke", (d) => getColour(d.category))
+      .attr("stroke-width", "2px")
+      .attr("fill-opacity", 0.1)
+      .attr("stroke-opacity", 0.9);
+
+    // update unit's location
+    const foundClient = Motion.clientList.find((d) => d.id === clientId);
+    foundClient.location = podId;
+
+    // Update unit count number
+    Motion.svg.selectAll("text").text((d) => {
+      const count = Motion.clientList.filter((client) => {
+        if (client.location) {
+          return client.location.startsWith(
+            d.name.toLowerCase().substring(0, 4)
+          );
+        }
+        return false;
+      }).length;
+      return `${d.name} (${count})`;
+    });
+
+    Motion.pods.forEach((d) => {
+      podObj[d.id] = { ...d };
+    });
+
     const { x, y } = podObj[podId];
 
     await d3
-      .select(`#${clientId}`)
+      .selectAll(`#${clientId}`)
+      .data(d3.selectAll(`#${clientId}`).data(), (d) => d.id)
+      .join(
+        (enter) =>
+          enter
+            .append("circle")
+            .attr("class", "client")
+            .attr("fill-opacity", 1)
+            .attr("id", `${clientId}`),
+        (update) => update.attr("fill-opacity", 1)
+      )
       .transition()
-      .duration(1000)
+      .duration(700)
       .attr("cx", x)
-      .attr("cy", y);
-    setTimeout(() => {
-      return 1;
-    }, 1000);
-    Motion.counter += 1;
+      .attr("cy", y)
+
+      // eslint-disable-next-line func-names
+      .on("end", function () {
+        d3.select(this).attr("fill-opacity", "0");
+      });
+    const nodeData = [...Array.from(node.data())];
+    node.remove();
+    this.svg.selectAll(".pod2").remove();
+
+    this.svg
+      .selectAll(".pod2")
+      .data(nodeData)
+      .join("circle")
+      .attr("fill", (d) => getColour(d.category))
+      .attr("class", "pod2")
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y)
+      .attr("r", 10);
+    return clientId;
   }
 }
-
-// append the svg object to the body of the page
-const svg = d3
-  .select("body")
-  .append("svg")
-  .attr("width", width)
-  .attr("height", height);
 
 // set cluster titles
 const titles = {};
@@ -122,6 +196,32 @@ d3.json("data.json")
       });
     });
 
+    // append the svg object to the body of the page
+    svg = d3
+      .select("body")
+      .append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+    // Initialize the circle: all located at the center of the svg area
+    node = svg
+      .append("g")
+      .selectAll(".pod")
+      .data(data)
+      .join("circle")
+      .attr("r", 10)
+      .attr("class", (d) => `circle pod ${d.category}`);
+    svg
+      .selectAll(".client")
+      .data(Array.from(Array(1000).keys()))
+      .join("circle")
+      .attr("class", "client")
+
+      .attr("cx", 0)
+      .attr("cy", 0)
+      .attr("r", 1)
+      .style("fill", "red");
+
     // A scale that gives a X target position for each group
     const x = d3
       .scaleLinear()
@@ -139,11 +239,13 @@ d3.json("data.json")
       { name: "Shipping", group: [2, 3] },
       { name: "Receipts", group: [3, 2] },
     ];
+
     svg
       .selectAll("text")
       .data(textData)
       .join("text")
       .text((d) => d.name)
+      .attr("fill", (d) => getColour(d.name.toLowerCase()))
       .attr("class", (d) => d.name.toLowerCase())
       .style("text-anchor", "middle");
 
@@ -153,19 +255,6 @@ d3.json("data.json")
       .data(textData)
       .join("circle")
       .attr("class", "text");
-
-    // Initialize the circle: all located at the center of the svg area
-    const node = svg
-      .append("g")
-      .selectAll("circle")
-      .data(data)
-      .enter()
-      .append("circle")
-      .attr("r", 10)
-      .attr("class", (d) => `circle pod ${d.category}`)
-      .on("mouseover", (event, d) => {
-        console.log(d);
-      });
 
     // Features of the forces applied to the pods nodes:
     const simulation = d3
@@ -223,9 +312,12 @@ d3.json("data.json")
       .force("collide", d3.forceCollide().strength(1).radius(15).iterations(1)); // Force that avoids circle overlapping
 
     // Start the force simulation
-    const startSim = async () => {
+    const startSim = () => {
       simulation.nodes(data).on("tick", () => {
-        node.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+        node
+          .attr("cx", (d) => d.x)
+          .attr("cy", (d) => d.y)
+          .attr("fill", (d) => getColour(d.category));
       });
 
       txtSimulation.nodes(textData).on("tick", () => {
@@ -236,20 +328,22 @@ d3.json("data.json")
           return d.x;
         });
       });
-      return Array.from(svg.selectAll(".pod"));
     };
+
     return startSim();
   })
   .then(() => {
-    // Start spawning the clients
+    // eslint-disable-next-line no-unused-vars
     const motion = new Motion(svg, "test");
-    console.log(motion);
-    const podIds = Array.from(d3.selectAll(".pod")).map((d) => d.__data__.id);
+    const podIds = Array.from(d3.selectAll(".pod").data()).map((d) => d.id);
     const orderPods = podIds.filter((d) => d.startsWith("order"));
     const paymentPods = podIds.filter((d) => d.startsWith("payment"));
     const receiptPods = podIds.filter((d) => d.startsWith("receipt"));
     const shippingPods = podIds.filter((d) => d.startsWith("shipping"));
 
+    /**
+     * A funtion that simulate traffic flow.
+     */
     const sim = () => {
       const clientId = `client_${Date.now()}`;
       Motion.spawn(clientId);
@@ -263,7 +357,11 @@ d3.json("data.json")
         Motion.copyAndMove(
           clientId,
           receiptPods[Math.floor(Math.random() * receiptPods.length)]
-        );
+        ).then((d) => {
+          setTimeout(() => {
+            Motion.destroy(d);
+          }, 1000);
+        });
       }, 1000);
 
       setTimeout(() => {
@@ -271,26 +369,27 @@ d3.json("data.json")
           clientId,
           paymentPods[Math.floor(Math.random() * paymentPods.length)]
         );
-      }, 1000);
+      }, 800);
       setTimeout(() => {
         Motion.move(
           clientId,
           receiptPods[Math.floor(Math.random() * receiptPods.length)]
         );
       }, 3000);
+
       setTimeout(() => {
         Motion.move(
           clientId,
           shippingPods[Math.floor(Math.random() * shippingPods.length)]
-        );
-      }, 5000);
-      // const intr = setInterval(function () {
-      //   client.spawn(Date.now())
-      //   i++
-      //   if (i > 10) clearInterval(intr)
-      // }, 100)
-      // }
+        ).then((d) => {
+          setTimeout(() => {
+            Motion.destroy(d);
+          }, 500);
+        });
+      }, 4000);
     };
+
+    // Run the sim function recursively
     setTimeout(() => {
       sim();
       const intr = setInterval(() => {
@@ -298,19 +397,24 @@ d3.json("data.json")
         if (Motion.counter > 100) {
           clearInterval(intr);
         }
-      }, Math.random(1, 20) * 1000);
-    }, 4000);
+      }, 200); // Control the speed of unit spawning
+    }, 2000);
   });
 
-let timeout = 700;
+// Allows some time while force simulation to startup
+let timeout = 500;
 setInterval(() => {
   timeout -= 1;
   if (timeout >= 0) {
-    console.log(timeout);
     d3.select("body")
       .selectAll("h2")
       .data([null])
       .join("h2")
-      .text(`Simulation start in ${timeout}`);
+      .style("position", "absolute")
+      .style("left", "20px")
+      .style("font-family", "sans-serif")
+      .text(`Simulation start in ${Math.floor(timeout / 100)}`);
+  } else {
+    d3.select("body").selectAll("h2").data([null]).join("h2").text(" ");
   }
 }, 1);
