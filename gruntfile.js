@@ -5,8 +5,8 @@ module.exports = function(grunt) {
         connect : {
             default : {
                 options : {
-                    port : 2019,
-                    livereload : 35728,
+                    port : 2022,
+                    livereload : 35999,
                     hostname : '*'
                 }
             }
@@ -14,10 +14,10 @@ module.exports = function(grunt) {
 
         watch : {
             scripts : {
-                files : ['css/*.css', '*.html']
+                files : ['css/*.css', '*.html', '*.js', '*.json']
             },
             options : {
-                livereload : 35728,
+                livereload : 35999,
                 spawn : false
             }
         }
@@ -30,3 +30,4 @@ module.exports = function(grunt) {
     // Default task(s).
     grunt.registerTask('default', ['connect', 'watch']);
 };
+

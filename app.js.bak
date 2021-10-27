@@ -1,6 +1,6 @@
 // set the dimensions and margins of the graph
 const width = 1200;
-const height = 800;
+const height = 600;
 let node;
 let svg;
 
@@ -25,24 +25,6 @@ function getRandomColor() {
 function getRandomCoord() {
   return { x: Math.random() * (width / 4), y: Math.random() * height };
 }
-
-// A scale that gives a X target position for each group
-const x = d3
-    .scaleLinear()
-    .domain([0, 3])
-    .range([0, (width * 2) / 3]);
-
-const y = d3
-    .scaleLinear()
-    .domain([1, 3])
-    .range([0, (height * 2) / 3.4]);
-
-const textData = [
-  { name: "Orders", group: [1, 2] },
-  { name: "Payments", group: [2, 1] },
-  { name: "Shipping", group: [2, 3] },
-  { name: "Receipts", group: [3, 2] },
-];
 
 class Motion {
   constructor(svgEl, id) {
@@ -88,7 +70,7 @@ class Motion {
       return d.id !== clientId;
     });
     // eslint-disable-next-line no-console
-    // console.log(`Destroyed::${clientId}`);
+    console.log(`Destroyed::${clientId}`);
     this.drawClients();
   }
 
@@ -240,7 +222,23 @@ d3.json("data.json")
       .attr("r", 1)
       .style("fill", "red");
 
+    // A scale that gives a X target position for each group
+    const x = d3
+      .scaleLinear()
+      .domain([0, 3])
+      .range([0, (width * 2) / 3]);
 
+    const y = d3
+      .scaleLinear()
+      .domain([1, 3])
+      .range([0, (height * 2) / 3.4]);
+
+    const textData = [
+      { name: "Orders", group: [1, 2] },
+      { name: "Payments", group: [2, 1] },
+      { name: "Shipping", group: [2, 3] },
+      { name: "Receipts", group: [3, 2] },
+    ];
 
     svg
       .selectAll("text")
@@ -399,10 +397,9 @@ d3.json("data.json")
         if (Motion.counter > 10000) {
           clearInterval(intr);
         }
-      }, 100); // Control the speed of unit spawning
+      }, 2); // Control the speed of unit spawning
     }, 2000);
   });
-
 
 // Allows some time while force simulation to startup
 let timeout = 500;
