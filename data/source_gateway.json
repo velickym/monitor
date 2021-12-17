@@ -1,0 +1,56 @@
+[
+  {
+    "name": "mobile",
+    "color": "yellow",
+    "children": [
+      {
+        "name": "ios",
+        "faName": "apple",
+        "faUnicode": "\uf179",
+        "current": 342
+      },
+      {
+        "name": "android",
+        "faName": "android",
+        "faUnicode": "\uf17b",
+        "current": 53
+      }
+    ]
+  },
+  {
+    "name": "desktop",
+    "color": "teal",
+    "children": [
+      {
+        "name": "chrome",
+        "faName": "chrome",
+        "faUnicode": "\uf268",
+        "current": 112
+      },
+      {
+        "name": "safari",
+        "faName": "safari",
+        "current": 24,
+        "faUnicode": "\uf267"
+      }
+    ]
+  },
+  {
+    "name": "retail",
+    "color": "pink",
+    "children": [
+      {
+        "name": "windows",
+        "faUnicode": "\uf17a",
+        "faName": "windows",
+        "current": 87
+      },
+      {
+        "current": 17,
+        "name": "raspberrypi",
+        "faName": "raspberry-pi",
+        "faUnicode": "\uf7bb"
+      }
+    ]
+  }
+]

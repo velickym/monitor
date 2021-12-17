@@ -1,45 +1,29 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta char set="utf-8" />
-    <title>FlowProbe</title>
+<head>
+	<meta char set="utf-8"/>
+	<title>FlowProbe</title>
 
-<!--    <script-->
-<!--      src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.2.0/d3.min.js"-->
-<!--      integrity="sha512-C2RveGuPIWqkaLAluvoxyiaN1XYNe5ss11urhZWZYBUA9Ydgj+hfGKPcxCzTwut1/fmjEZR7Ac35f2aycT8Ogw=="-->
-<!--      crossorigin="anonymous"-->
-<!--    ></script>-->
+	<!--    <script-->
+	<!--      src="https://cdnjs.cloudflare.com/ajax/libs/d3/6.2.0/d3.min.js"-->
+	<!--      integrity="sha512-C2RveGuPIWqkaLAluvoxyiaN1XYNe5ss11urhZWZYBUA9Ydgj+hfGKPcxCzTwut1/fmjEZR7Ac35f2aycT8Ogw=="-->
+	<!--      crossorigin="anonymous"-->
+	<!--    ></script>-->
 
-    <script src="d3.min.js"></script>
+	<script src="d3.min.js"></script>
 
-    <style>
+	<head>
+		<link href="css/fa/fa.min.css" rel="stylesheet"/>
+		<link href="css/flowprobe.css" rel="stylesheet"/>
+	</head>
 
-      text {
-        font-family: sans-serif;
-        font-weight: 600;
-      }
+</head>
 
-      svg {
-        border: 1px solid red;
-      }
-
-      circle {
-        cursor: pointer;
-      }
-
-      circle:hover {
-        transition: stroke-width 0.3s;
-        stroke-width: 4px;
-      }
-
-    </style>
-  </head>
-
-  <body>
-<!--    <script src="app.js" charset="utf-8"></script>-->
-
-    <svg width="900" height="600" />
-
+<body>
+    <div class="body-wrapper">
+        <svg width="1000" height="800"/>
+    </div>
     <script type="module" src="index.js"></script>
-  </body>
+</body>
+
 </html>

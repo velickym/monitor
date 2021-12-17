@@ -27,13 +27,16 @@ function getRandomCoord() {
 const svg = d3.select("svg");
 const flowProbe = new FlowProbe(svg);
 
-d3
-    .json("data.json")
-    .then(data => {
-        flowProbe.initScales();
-        flowProbe.drawSkeleton();
-        flowProbe.initLayoutData(data);
-        flowProbe.initSimulation();
-        flowProbe.appendElements();
-        // flowProbe.startSimulation();
-    })
+
+Promise.all([
+    d3.json('data/services.json'),
+    d3.json('data/source_gateway.json')
+])
+.then(([grid, sGateway]) => {
+    flowProbe.initScales();
+    flowProbe.drawSourceGateway(sGateway);
+    flowProbe.initLayoutData(grid);
+    // flowProbe.initSimulation();
+    flowProbe.appendServices();
+    flowProbe.startSimulation();
+})

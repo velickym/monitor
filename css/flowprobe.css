@@ -1,0 +1,61 @@
+html, body {height:100%;}
+html {display:table; width:100%;}
+body {display:table-cell; text-align:center; vertical-align:middle;}
+
+text {
+    font-family: sans-serif;
+    font-weight: 600;
+}
+
+svg {
+    border: 1px solid red;
+
+}
+
+circle:hover {
+    transition: stroke-width 0.3s;
+    stroke-width: 6px;
+}
+
+.arc {
+    stroke-width: 5px;
+    stroke: white;
+}
+
+.gateway-circle {
+    fill: white;
+    stroke: white;
+}
+
+.gateway-icon {
+    text-anchor: middle;
+    color: black;
+    font-family: "Font Awesome 5 Brands", serif;
+    stroke-width: 1;
+    stroke: white;
+}
+
+.service-captions text {
+
+}
+
+.service-throughputs text {
+
+    font-size: 24px;
+
+}
+
+.service-wrapper {
+    fill: white;
+    stroke: black;
+    stroke-width: 1;
+}
+
+.service-throughput {
+
+}
+
+#raspberrypi {
+    stroke: black;
+    stroke-width: .1;
+}
